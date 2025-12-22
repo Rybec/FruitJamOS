@@ -5,12 +5,6 @@
 
 #include "spi1.h"
 
-/*
-	All functions use and assume a strict policy of
-	returning the dc pin to 0 before returning.
-
-	Likewise, all functions should return with cs high.
-*/
 
 #define swap_bytes_16(x) ((x << 8) | (x >> 8))
 
@@ -47,7 +41,6 @@ void write_data(uint8_t *data, size_t len) {
 	gpio_put(cs, 0);
 	gpio_put(dc, 1);
 	SPI1_write(data, len);
-	gpio_put(dc, 0);
 	gpio_put(cs, 1);
 }
 
@@ -58,7 +51,6 @@ void write_register(uint8_t reg, uint32_t argc, uint8_t argv[]) {
 
 	gpio_put(dc, 1);
 	SPI1_write(argv, argc);
-	gpio_put(dc, 0);
 
 	gpio_put(cs, 1);
 }
@@ -131,19 +123,21 @@ void ST7789_init(uint8_t rotation, uint8_t _dc, uint8_t _rst, uint8_t _cs) {
 
 
 void ST7789_set_framebuffer(uint16_t *buffer, uint16_t w, uint16_t h) {
+// !!! Might need SP1_DMA_wait() here !!!
 	framebuffer = buffer;
 	fb_width = w;
 	fb_height = h;
-printf("ST7789: Setting framebuffer...\n");
+//printf("ST7789: Setting framebuffer...\n");
 	SPI1_DMA_set_buf((uint8_t*)buffer, w * h * 2);
-printf("ST7789: Done setting framebuffer...\n");
+//printf("ST7789: Done setting framebuffer...\n");
+	dirty_ramwr = 1;
 }
 
 
 void ST7789_blit() {
-printf("ST7789: Waiting for DMA...\n");
+//printf("ST7789: Waiting for DMA...\n");
 	SPI1_DMA_wait();
-printf("ST7789: Reset frame if needed...\n");
+//printf("ST7789: Reset frame if needed...\n");
 	gpio_put(cs, 0);
 	gpio_put(dc, 0);
 	if (dirty_ramwr) {
@@ -158,12 +152,51 @@ printf("ST7789: Reset frame if needed...\n");
 		dirty_ramwr = 0;
 	}
 
-printf("ST7789: Starting DMA...\n");
+//printf("ST7789: Starting DMA...\n");
 	gpio_put(dc, 1);
 	SPI1_DMA_start_tx();
-printf("ST7789: Returned from starting DMA...\n");
+//printf("ST7789: Returned from starting DMA...\n");
 }
 
+
+inline uint16_t ST7789_get_width() {
+	return width;
+}
+
+
+inline uint16_t ST7789_get_height() {
+	return height;
+}
+
+
+// Returns color depth in bits
+inline uint8_t ST7789_get_depth() {
+	return depth;
+}
+
+
+
+// Maybe add function for writing to subsection of
+// screen or maybe add full "viewport" support.
+
+
+/*
+Brightness changing functions
+*/
+
+/*
+Change rotation
+Might be useful if accelerometer is used.
+Don't forget to swap width/height
+*/
+
+
+
+
+
+
+
+// !!! Non-DMA functions, preserved for informational purposes only. !!!
 
 /*
 	Writes buffer contents to full screen
@@ -210,34 +243,5 @@ void ST7789_cont_write(uint8_t *buffer, size_t len) {
 	write_data(buffer, len);
 }
 */
-
-inline uint16_t ST7789_get_width() {
-	return width;
-}
-
-
-inline uint16_t ST7789_get_height() {
-	return height;
-}
-
-
-// Returns color depth in bits
-inline uint8_t ST7789_get_depth() {
-	return depth;
-}
-
-
-
-
-/*
-Brightness changing functions
-*/
-
-/*
-Change rotation
-Might be useful if accelerometer is used.
-Don't forget to swap width/height
-*/
-
 
 

@@ -14,6 +14,28 @@ void ST7789_set_framebuffer(uint16_t *buffer, uint16_t w, uint16_t h);
 void ST7789_blit();
 
 
+uint16_t ST7789_get_width();
+uint16_t ST7789_get_height();
+uint8_t ST7789_get_depth();
+
+
+/*
+Brightness changing functions
+*/
+
+/*
+Change rotation
+Might be useful if accelerometer is used.
+Don't forget to swap width/height
+*/
+
+
+
+
+
+
+// Obsolete functions
+
 /*
 	Writes buffer contents to full screen
 
@@ -38,20 +60,4 @@ void ST7789_write_rect(uint8_t *buffer, uint16_t x, uint16_t y,
 
 void ST7789_cont_write(uint8_t *buffer, size_t len);
 */
-uint16_t ST7789_get_width();
-uint16_t ST7789_get_height();
-uint8_t ST7789_get_depth();
-
-
-/*
-Brightness changing functions
-*/
-
-/*
-Change rotation
-Might be useful if accelerometer is used.
-Don't forget to swap width/height
-*/
-
-
 
