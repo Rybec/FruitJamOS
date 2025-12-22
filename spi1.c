@@ -36,10 +36,10 @@ void SPI1_init() {
 }
 
 void SPI1_DMA_wait() {
-printf("SPI1: Waiting for DMA...\n");
+//printf("SPI1: Waiting for DMA...\n");
 	if (dma_channel_is_busy(dma_tx))
 		dma_channel_wait_for_finish_blocking(dma_tx);
-printf("SPI1: DMA now free...\n");
+//printf("SPI1: DMA now free...\n");
 }
 
 void SPI1_DMA_set_buf(uint8_t *txbuf, size_t len) {
@@ -52,10 +52,10 @@ void SPI1_DMA_set_buf(uint8_t *txbuf, size_t len) {
 }
 
 void SPI1_DMA_start_tx() {
-printf("SPI1: Blocking if busy...\n");
+//printf("SPI1: Blocking if busy...\n");
 	SPI1_DMA_wait();
 
-printf("SPI1: Reset buffer address and start...\n");
+//printf("SPI1: Reset buffer address and start...\n");
 	dma_channel_set_read_addr(dma_tx, dma_buffer, true);
 }
 
@@ -63,3 +63,4 @@ void SPI1_write(uint8_t* buffer, size_t len) {
 	SPI1_DMA_wait();
 	spi_write_blocking(spi1, buffer, len);
 }
+
