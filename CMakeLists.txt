@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 
 # initialize the SDK based on PICO_SDK_PATH
 # note: this must happen before project()
-set(PICO_BOARD pico2)
+set(PICO_BOARD adafruit_fruit_jam)
 set(PICO_PLATFORM rp2350-arm-s)
 include(pico_sdk_import.cmake)
 
