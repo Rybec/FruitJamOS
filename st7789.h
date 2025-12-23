@@ -1,3 +1,9 @@
+
+#define ST7789_DC 6
+#define ST7789_RST 7
+#define ST7789_CS 10
+
+
 #define ROT0   0b00000000
 #define ROT90  0b01100000
 #define ROT180 0b11000000
