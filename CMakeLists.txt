@@ -17,6 +17,7 @@ add_executable(fjdos
     fjdos.c
 	spi1.c
 	st7789.c
+	sgl.c
 )
 
 
@@ -26,6 +27,7 @@ target_include_directories(fjdos PRIVATE
 
 target_link_libraries(fjdos
         pico_stdlib              # for core functionality
+		pico_malloc
 		hardware_spi
 		hardware_dma
         )
