@@ -18,6 +18,8 @@ add_executable(fjdos
 	spi1.c
 	st7789.c
 	sgl.c
+	sgl_draw.c
+
 )
 
 

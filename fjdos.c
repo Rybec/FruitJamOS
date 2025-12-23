@@ -3,9 +3,9 @@
 #include "pico/stdlib.h"
 #include "hardware/spi.h"
 
-//#include "spi1.h"
 #include "st7789.h"
 #include "sgl.h"
+#include "sgl_draw.h"
 
 
 #define swap_bytes_16(x) ((x << 8) | (x >> 8))
@@ -22,7 +22,7 @@ void main() {
 	sleep_ms(100);
 
 
-
+/*
 	printf("Setting up data in framebuffer...\n");
 	for (uint32_t y = 0; y < 240; y++) {
 		for (uint32_t x = 0; x < 320; x++) {
@@ -33,9 +33,19 @@ void main() {
 			display->buffer[y * 320 + x] = (r << 11) | (g << 5) | b;
 		}
 	}
+*/
 
+	uint8_t y = 0;
 
 	while(1) {
+		SGL_fill(display, 0x0000);
+
+		y = (y + 1) % 220;
+
+		SGL_DRAW_hline(display,
+		               20, 30,
+		               y, 16 << 11 | 0 << 5 | 20);
+
 		printf("Writing frame...\n");
 		ST7789_blit();
 		printf("Waiting 1 second...\n");
