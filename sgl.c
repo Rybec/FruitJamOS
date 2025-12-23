@@ -34,6 +34,7 @@ SGL_display *SGL_create_display(enum SGL_driver driver) {
 			uint16_t *buffer = calloc(320 * 240, 2);
 
 			ST7789_init(ROT90, ST7789_DC, ST7789_RST, ST7789_CS);
+			sleep_ms(100);
 			ST7789_set_framebuffer(buffer, 320, 240);
 
 			SGL_display *display = malloc(sizeof(SGL_display));
@@ -57,8 +58,9 @@ void SGL_destroy_display(SGL_display *display) {
 }
 
 void SGL_fill(SGL_display *display, uint16_t color) {
-	for (uint16_t i = 0; i < (display->width * display->height); i++)
-		display->buffer[i] = color;	
+	for (uint32_t i = 0; i < (display->width * display->height); i++) {
+		display->buffer[i] = color;
+	}
 }
 
 
