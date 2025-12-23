@@ -56,6 +56,13 @@ void SGL_destroy_display(SGL_display *display) {
 	free(display->buffer);
 }
 
+void SGL_fill(SGL_display *display, uint16_t color) {
+	for (uint16_t i = 0; i < (display->width * display->height); i++)
+		display->buffer[i] = color;	
+}
+
+
+
 
 /*
 	Options?:

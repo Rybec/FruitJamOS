@@ -30,4 +30,6 @@ SGL_display *SGL_create_display(enum SGL_driver driver);
 
 void SGL_destroy_display(SGL_display *display);
 
+void SGL_fill(SGL_display *display, uint16_t color);
+
 
