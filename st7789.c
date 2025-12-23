@@ -137,22 +137,19 @@ void ST7789_set_framebuffer(uint16_t *buffer, uint16_t w, uint16_t h) {
 void ST7789_blit() {
 //printf("ST7789: Waiting for DMA...\n");
 	SPI1_DMA_wait();
-//printf("ST7789: Reset frame if needed...\n");
-	gpio_put(cs, 0);
-	gpio_put(dc, 0);
-	if (dirty_ramwr) {
-		uint16_t r[2] = {0, swap_bytes_16(fb_width - 1)};
-		write_register(0x2A, 4, (uint8_t*)r);
+//printf("ST7789: Reset frame...\n");
 
-		r[1] = swap_bytes_16(fb_height - 1);
-		write_register(0x2B, 4, (uint8_t*)r);
+	uint16_t r[2] = {0, swap_bytes_16(fb_width - 1)};
+	write_register(0x2A, 4, (uint8_t*)r);
 
-		write_command(0x2C);
+	r[1] = swap_bytes_16(fb_height - 1);
+	write_register(0x2B, 4, (uint8_t*)r);
 
-		dirty_ramwr = 0;
-	}
+	write_command(0x2C);
+
 
 //printf("ST7789: Starting DMA...\n");
+	gpio_put(cs, 0);
 	gpio_put(dc, 1);
 	SPI1_DMA_start_tx();
 //printf("ST7789: Returned from starting DMA...\n");
