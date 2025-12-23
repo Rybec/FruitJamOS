@@ -17,10 +17,10 @@ void main() {
 	printf("\n\n\n\n\n\n\n\n");
 
 	SGL_init();
+	sleep_ms(100);
 
 	SGL_display *display = SGL_create_display(ST7789);
 	sleep_ms(100);
-
 
 /*
 	printf("Setting up data in framebuffer...\n");
@@ -35,21 +35,22 @@ void main() {
 	}
 */
 
-	uint8_t y = 0;
+	uint16_t y = 0;
 
 	while(1) {
+//printf("Clearing buffer...\n");
 		SGL_fill(display, 0x0000);
 
-		y = (y + 1) % 220;
-
+		y = (y + 1) % 240;
+//printf("Drawing line at y = %d\n", y);
 		SGL_DRAW_hline(display,
-		               20, 30,
-		               y, 16 << 11 | 0 << 5 | 20);
+		               20, 300,
+		               y, 16 << 0 | 32 << 5 | 8);
 
-		printf("Writing frame...\n");
+//printf("Writing frame...\n");
 		ST7789_blit();
-		printf("Waiting 1 second...\n");
-		sleep_ms(1000);
+//printf("Waiting 1 second...\n");
+//		sleep_ms(1000);
 	}
 
 }
