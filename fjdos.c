@@ -9,6 +9,11 @@
 #include "sgl_draw.h"
 
 
+#define FPS10 100000
+#define FPS16 62500
+#define FPS20 50000
+#define FPS25 40000
+
 #define swap_bytes_16(x) ((x << 8) | (x >> 8))
 
 void main() {
@@ -36,28 +41,81 @@ void main() {
 	}
 */
 
-	uint16_t y = 0;
+	int16_t y = 0;
+	int16_t x = 0;
 	uint64_t next_tick = time_us_64();
-	uint8_t fps = 40;
+	int64_t time_diff;
+
 
 	while(1) {
-		next_tick = next_tick + (1000000 / fps);
+		next_tick = next_tick + FPS25;
 
 
 		// Render
 		SGL_fill(display, 0x0000);
 
+		x = (x + 1) % 320;
 		y = (y + 1) % 240;
 
 		SGL_DRAW_hline(display,
 		               20, 300,
-		               y, 16 << 0 | 32 << 5 | 8);
+		               y, 31 << 11 | 0 << 5 | 0);
+
+		SGL_DRAW_vline(display,
+		               x, 20, 220,
+		               0 << 11 | 63 << 5 | 0);
+
+		// From top left
+		SGL_DRAW_line(display,
+		              0, 0,
+		              x, y,
+		              0 << 11 | 0 << 5 | 31);
+
+		// From top right
+		SGL_DRAW_line(display,
+		              319, 0,
+		              x, y,
+		              0 << 11 | 0 << 5 | 31);
+
+		// From bottom left
+		SGL_DRAW_line(display,
+		              0, 239,
+		              x, y,
+		              0 << 11 | 0 << 5 | 31);
+
+		// From bottom right
+		SGL_DRAW_line(display,
+		              319, 239,
+		              x, y,
+		              0 << 11 | 0 << 5 | 31);
+
+
+
+
+		SGL_DRAW_circle(display,
+		                x, y,
+		                10,
+		                0xFFFF);
+
+		SGL_DRAW_rect(display,
+		                x - 12, y - 12,
+		                24, 24,
+		                31 << 11 | 0 << 5 | 31);
+
+		SGL_DRAW_triangle(display,
+		                  x, y - 40,
+		                  x - 30, y + 20,
+		                  x + 30, y + 20,
+		                  0 << 11 | 63 << 5 | 31);
+
 
 		ST7789_blit();
 
 
 		// Busy wait till next tick
-		while (next_tick < time_us_64());
+		int64_t time_diff = next_tick - time_us_64();
+		while (time_diff > 0)
+			time_diff = next_tick - time_us_64();
 	}
 
 }
