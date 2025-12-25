@@ -1,3 +1,6 @@
+#ifndef ST7789_H
+#define ST7789_H
+
 
 #define ST7789_DC 6
 #define ST7789_RST 7
@@ -67,3 +70,5 @@ void ST7789_write_rect(uint8_t *buffer, uint16_t x, uint16_t y,
 void ST7789_cont_write(uint8_t *buffer, size_t len);
 */
 
+
+#endif
