@@ -6,6 +6,7 @@ from SDL, adapted to low resource,
 baremetal platforms. */
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "pico/stdlib.h"
 #include "pico/malloc.h"
@@ -21,28 +22,32 @@ void SGL_init() {
 
 /*
 typedef struct {
-	uint16_t width;
-	uint16_t height;
-	enum SGL_Driver driver;
-	uint16_t *buffer;
+	enum SGL_driver driver;
+	SGL_surface *surface;
 } SGL_display;
+
+typedef struct {
+	uint16_t width,
+	uint16_t height,
+	uint16_t pixels[]
+} SGL_surface;
 */
 
 SGL_display *SGL_create_display(enum SGL_driver driver) {
 	switch (driver) {
 		case ST7789:
-			uint16_t *buffer = calloc(320 * 240, 2);
+			SGL_display *display = malloc(sizeof(SGL_display));
+			SGL_surface *surface = malloc(sizeof(SGL_surface) + 320 * 240 * 2);
 
 			ST7789_init(ROT90, ST7789_DC, ST7789_RST, ST7789_CS);
 			sleep_ms(100);
-			ST7789_set_framebuffer(buffer, 320, 240);
+			ST7789_set_framebuffer(surface->pixels, 320, 240);
 
-			SGL_display *display = malloc(sizeof(SGL_display));
-
-			display->width = 320;
-			display->height = 240;
 			display->driver = driver;
-			display->buffer = buffer;
+			display->surface = surface;
+			display->surface->width = 320;
+			display->surface->height = 240;
+			memset(display->surface->pixels, 0x00, 320 * 240 * 2);
 
 			ST7789_blit();
 
@@ -52,14 +57,18 @@ SGL_display *SGL_create_display(enum SGL_driver driver) {
 	}
 }
 
-
-void SGL_destroy_display(SGL_display *display) {
-	free(display->buffer);
+SGL_surface *SGL_get_display_surface(SGL_display *display) {
+	return display->surface;
 }
 
-void SGL_fill(SGL_display *display, uint16_t color) {
-	for (uint32_t i = 0; i < (display->width * display->height); i++) {
-		display->buffer[i] = color;
+void SGL_destroy_display(SGL_display *display) {
+	free(display->surface);
+	free(display);
+}
+
+void SGL_fill(SGL_surface *surface, uint16_t color) {
+	for (uint32_t i = 0; i < (surface->width * surface->height); i++) {
+		surface->pixels[i] = color;
 	}
 }
 

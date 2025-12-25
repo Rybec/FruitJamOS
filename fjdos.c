@@ -7,6 +7,9 @@
 #include "st7789.h"
 #include "sgl.h"
 #include "sgl_draw.h"
+#include "sgl_img.h"
+
+#include "images.h"
 
 
 #define FPS10 100000
@@ -26,6 +29,7 @@ void main() {
 	sleep_ms(100);
 
 	SGL_display *display = SGL_create_display(ST7789);
+	SGL_surface *screen = SGL_get_display_surface(display);
 	sleep_ms(100);
 
 /*
@@ -52,39 +56,39 @@ void main() {
 
 
 		// Render
-		SGL_fill(display, 0x0000);
+		SGL_fill(screen, 0x0000);
 
 		x = (x + 1) % 320;
 		y = (y + 1) % 240;
 
-		SGL_DRAW_hline(display,
+		SGL_DRAW_hline(screen,
 		               20, 300,
 		               y, 31 << 11 | 0 << 5 | 0);
 
-		SGL_DRAW_vline(display,
+		SGL_DRAW_vline(screen,
 		               x, 20, 220,
 		               0 << 11 | 63 << 5 | 0);
 
 		// From top left
-		SGL_DRAW_line(display,
+		SGL_DRAW_line(screen,
 		              0, 0,
 		              x, y,
 		              0 << 11 | 0 << 5 | 31);
 
 		// From top right
-		SGL_DRAW_line(display,
+		SGL_DRAW_line(screen,
 		              319, 0,
 		              x, y,
 		              0 << 11 | 0 << 5 | 31);
 
 		// From bottom left
-		SGL_DRAW_line(display,
+		SGL_DRAW_line(screen,
 		              0, 239,
 		              x, y,
 		              0 << 11 | 0 << 5 | 31);
 
 		// From bottom right
-		SGL_DRAW_line(display,
+		SGL_DRAW_line(screen,
 		              319, 239,
 		              x, y,
 		              0 << 11 | 0 << 5 | 31);
@@ -92,22 +96,26 @@ void main() {
 
 
 
-		SGL_DRAW_circle(display,
+		SGL_DRAW_circle(screen,
 		                x, y,
 		                10,
 		                0xFFFF);
 
-		SGL_DRAW_rect(display,
+		SGL_DRAW_rect(screen,
 		                x - 12, y - 12,
 		                24, 24,
 		                31 << 11 | 0 << 5 | 31);
 
-		SGL_DRAW_triangle(display,
+		SGL_DRAW_triangle(screen,
 		                  x, y - 40,
 		                  x - 30, y + 20,
 		                  x + 30, y + 20,
 		                  0 << 11 | 63 << 5 | 31);
 
+		SGL_rect srect = {0, 0, blue_roof_house.width, blue_roof_house.height};
+		SGL_rect drect = {50, 50, 0, 0};
+		SGL_IMG_blit(&blue_roof_house, &srect,
+		             screen, &drect);
 
 		ST7789_blit();
 

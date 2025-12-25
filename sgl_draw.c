@@ -14,15 +14,15 @@ typedef struct {
 } SGL_display;
 */
 
-void SGL_DRAW_pixel(SGL_display *display,
+void SGL_DRAW_pixel(SGL_surface *surface,
                     int16_t x, int16_t y,
                     int16_t color) {
 	if ((x >= 0) && (y >= 0) &&
-        (x < display->width) && (y < display->height))
-		display->buffer[y * display->width + x] = color;
+        (x < surface->width) && (y < surface->height))
+		surface->pixels[y * surface->width + x] = color;
 }
 
-void SGL_DRAW_hline(SGL_display *display,
+void SGL_DRAW_hline(SGL_surface *surface,
                     int16_t x0, int16_t x1,
                     int16_t y,
                     uint16_t color) {
@@ -38,10 +38,10 @@ void SGL_DRAW_hline(SGL_display *display,
 	}
 
 	for (int16_t x = _x0; x < _x1; x++)
-		SGL_DRAW_pixel(display, x, y, color);
+		SGL_DRAW_pixel(surface, x, y, color);
 }
 
-void SGL_DRAW_vline(SGL_display *display,
+void SGL_DRAW_vline(SGL_surface *surface,
                     int16_t x,
                     int16_t y0, int16_t y1,
                     uint16_t color) {
@@ -57,19 +57,19 @@ void SGL_DRAW_vline(SGL_display *display,
 	}
 
 	for (int16_t y = _y0; y < _y1; y++)
-		SGL_DRAW_pixel(display, x, y, color);
+		SGL_DRAW_pixel(surface, x, y, color);
 }
 
 
-void SGL_DRAW_line(SGL_display *display,
+void SGL_DRAW_line(SGL_surface *surface,
                    int16_t x0, int16_t y0,
                    int16_t x1, int16_t y1,
                    uint16_t color) {
 	if (x0 == x1) {
-		SGL_DRAW_vline(display, x0,
+		SGL_DRAW_vline(surface, x0,
 		               y0, y1, color);
 	} else if (y0 == y1) {
-		SGL_DRAW_hline(display,
+		SGL_DRAW_hline(surface,
 		               x0, x1,
 		               y0, color);
 	} else {
@@ -81,7 +81,7 @@ void SGL_DRAW_line(SGL_display *display,
 		int16_t e2;
 
 		while (true) {
-			SGL_DRAW_pixel(display, x0, y0, color);
+			SGL_DRAW_pixel(surface, x0, y0, color);
 
 			if (x0 == x1 && y0 == y1)
 				break;
@@ -102,34 +102,34 @@ void SGL_DRAW_line(SGL_display *display,
 }
 
 
-void SGL_DRAW_rect(SGL_display *display,
+void SGL_DRAW_rect(SGL_surface *surface,
                    int16_t x, int16_t y,
                    int16_t w, int16_t h,
                    uint16_t color) {
-	SGL_DRAW_hline(display, x, x + w, y, color);
-	SGL_DRAW_hline(display, x, x + w, y + h, color);
+	SGL_DRAW_hline(surface, x, x + w, y, color);
+	SGL_DRAW_hline(surface, x, x + w, y + h, color);
 
-	SGL_DRAW_vline(display, x, y, y + h, color);
-	SGL_DRAW_vline(display, x + w, y, y + h, color);
+	SGL_DRAW_vline(surface, x, y, y + h, color);
+	SGL_DRAW_vline(surface, x + w, y, y + h, color);
 }
 
-void SGL_DRAW_triangle(SGL_display *display,
+void SGL_DRAW_triangle(SGL_surface *surface,
                        int16_t x0, int16_t y0,
                        int16_t x1, int16_t y1,
                        int16_t x2, int16_t y2,
                        uint16_t color) {
-	SGL_DRAW_line(display,
+	SGL_DRAW_line(surface,
 	              x0, y0, x1, y1,
 	              color);
-	SGL_DRAW_line(display,
+	SGL_DRAW_line(surface,
 	              x1, y1, x2, y2,
 	              color);
-	SGL_DRAW_line(display,
+	SGL_DRAW_line(surface,
 	              x0, y0, x2, y2,
 	              color);
 }
 
-void SGL_DRAW_circle(SGL_display *display,
+void SGL_DRAW_circle(SGL_surface *surface,
                      int16_t x0, int16_t y0,
                      uint16_t radius, uint16_t color) {
 
@@ -139,10 +139,10 @@ void SGL_DRAW_circle(SGL_display *display,
 	int16_t x = 0;
 	int16_t y = radius;
 
-	SGL_DRAW_pixel(display, x0, y0 + radius, color);
-	SGL_DRAW_pixel(display, x0, y0 - radius, color);
-	SGL_DRAW_pixel(display, x0 + radius, y0, color);
-	SGL_DRAW_pixel(display, x0 - radius, y0, color);
+	SGL_DRAW_pixel(surface, x0, y0 + radius, color);
+	SGL_DRAW_pixel(surface, x0, y0 - radius, color);
+	SGL_DRAW_pixel(surface, x0 + radius, y0, color);
+	SGL_DRAW_pixel(surface, x0 - radius, y0, color);
 
 	while (x < y) {
 		if (f >= 0) {
@@ -155,14 +155,14 @@ void SGL_DRAW_circle(SGL_display *display,
 		dx += 2;
 		f += dx + 1;
 
-		SGL_DRAW_pixel(display, x0 + x, y0 + y, color);
-		SGL_DRAW_pixel(display, x0 - x, y0 + y, color);
-		SGL_DRAW_pixel(display, x0 + x, y0 - y, color);
-		SGL_DRAW_pixel(display, x0 - x, y0 - y, color);
-		SGL_DRAW_pixel(display, x0 + y, y0 + x, color);
-		SGL_DRAW_pixel(display, x0 - y, y0 + x, color);
-		SGL_DRAW_pixel(display, x0 + y, y0 - x, color);
-		SGL_DRAW_pixel(display, x0 - y, y0 - x, color);
+		SGL_DRAW_pixel(surface, x0 + x, y0 + y, color);
+		SGL_DRAW_pixel(surface, x0 - x, y0 + y, color);
+		SGL_DRAW_pixel(surface, x0 + x, y0 - y, color);
+		SGL_DRAW_pixel(surface, x0 - x, y0 - y, color);
+		SGL_DRAW_pixel(surface, x0 + y, y0 + x, color);
+		SGL_DRAW_pixel(surface, x0 - y, y0 + x, color);
+		SGL_DRAW_pixel(surface, x0 + y, y0 - x, color);
+		SGL_DRAW_pixel(surface, x0 - y, y0 - x, color);
 	}
 }
 

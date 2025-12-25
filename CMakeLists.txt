@@ -20,7 +20,8 @@ add_executable(fjdos
 	st7789.c
 	sgl.c
 	sgl_draw.c
-
+	sgl_img.c
+	images.c
 )
 
 
