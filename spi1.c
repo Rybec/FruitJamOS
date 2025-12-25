@@ -8,7 +8,7 @@
 #define MI1 28
 #define MO1 31
 
-#define SPI_BAUD 24000000
+#define SPI_BAUD 62500000
 
 int dma_tx = -1;
 dma_channel_config dma_conf;
@@ -36,10 +36,8 @@ void SPI1_init() {
 }
 
 void SPI1_DMA_wait() {
-//printf("SPI1: Waiting for DMA...\n");
 	if (dma_channel_is_busy(dma_tx))
 		dma_channel_wait_for_finish_blocking(dma_tx);
-//printf("SPI1: DMA now free...\n");
 }
 
 void SPI1_DMA_set_buf(uint8_t *txbuf, size_t len) {
@@ -52,10 +50,8 @@ void SPI1_DMA_set_buf(uint8_t *txbuf, size_t len) {
 }
 
 void SPI1_DMA_start_tx() {
-//printf("SPI1: Blocking if busy...\n");
 	SPI1_DMA_wait();
 
-//printf("SPI1: Reset buffer address and start...\n");
 	dma_channel_set_read_addr(dma_tx, dma_buffer, true);
 }
 
