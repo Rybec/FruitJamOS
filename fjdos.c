@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "pico/stdlib.h"
+#include "pico/time.h"
 #include "hardware/spi.h"
 
 #include "st7789.h"
@@ -36,21 +37,27 @@ void main() {
 */
 
 	uint16_t y = 0;
+	uint64_t next_tick = time_us_64();
+	uint8_t fps = 40;
 
 	while(1) {
-//printf("Clearing buffer...\n");
+		next_tick = next_tick + (1000000 / fps);
+
+
+		// Render
 		SGL_fill(display, 0x0000);
 
 		y = (y + 1) % 240;
-//printf("Drawing line at y = %d\n", y);
+
 		SGL_DRAW_hline(display,
 		               20, 300,
 		               y, 16 << 0 | 32 << 5 | 8);
 
-//printf("Writing frame...\n");
 		ST7789_blit();
-//printf("Waiting 1 second...\n");
-//		sleep_ms(1000);
+
+
+		// Busy wait till next tick
+		while (next_tick < time_us_64());
 	}
 
 }

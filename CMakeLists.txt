@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.13)
 # note: this must happen before project()
 set(PICO_BOARD adafruit_fruit_jam)
 set(PICO_PLATFORM rp2350-arm-s)
+set(CMAKE_BUILD_TYPE Release)
 include(pico_sdk_import.cmake)
 
 project(fjdos C CXX ASM)
@@ -30,6 +31,7 @@ target_include_directories(fjdos PRIVATE
 target_link_libraries(fjdos
         pico_stdlib              # for core functionality
 		pico_malloc
+		pico_time
 		hardware_spi
 		hardware_dma
         )
