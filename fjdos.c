@@ -2,6 +2,7 @@
 
 #include "pico/stdlib.h"
 #include "pico/time.h"
+#include "hardware/clocks.h"
 #include "hardware/spi.h"
 
 #include "st7789.h"
@@ -15,15 +16,30 @@
 #define FPS10 100000
 #define FPS16 62500
 #define FPS20 50000
-#define FPS25 40000
+#define FPS25 40000  // Max FPS with clk_peri set to 150MHz
+
+// For framerates faster than 25FPS, clk_peri must be set to 125MHz
+#define FPS30 33334  // 29.9976...FPS
+#define FPS35 28572  // 34.9993...FPS
+#define FPS40 25000
+#define FPS45 22223  // 44.9984...FPS
+#define FPS50 20000
+
 
 #define swap_bytes_16(x) ((x << 8) | (x >> 8))
 
 void main() {
+
+	clock_configure(clk_peri, 0, CLOCKS_CLK_PERI_CTRL_AUXSRC_VALUE_CLK_SYS,
+	                125000000, 125000000);
+
+
+
 	stdio_init_all();
-	sleep_ms(100);
+	sleep_ms(5000);
 
 	printf("\n\n\n\n\n\n\n\n");
+
 
 	SGL_init();
 	sleep_ms(100);
@@ -50,9 +66,15 @@ void main() {
 	uint64_t next_tick = time_us_64();
 	int64_t time_diff;
 
+// !!! For measuring frame rate, can be removed !!!
+// Or maybe leave in without serial print code, to
+// demonstrate how to track framerate...
+	uint32_t start = time_us_32();
+	uint32_t frame_count = 0;
 
 	while(1) {
-		next_tick = next_tick + FPS25;
+		next_tick = next_tick + FPS50;
+
 
 
 		// Render
@@ -120,10 +142,21 @@ void main() {
 		ST7789_blit();
 
 
+// !!! For measuring frame rate, can be removed !!!
+// Or maybe leave in without serial print code, to
+// demonstrate how to track framerate...
+frame_count++;
+uint32_t now = time_us_32();
+printf("%u fps\n",
+       frame_count / ((now - start) / 1000000));
+
+
 		// Busy wait till next tick
 		int64_t time_diff = next_tick - time_us_64();
 		while (time_diff > 0)
 			time_diff = next_tick - time_us_64();
+
+
 	}
 
 }
