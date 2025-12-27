@@ -8,7 +8,7 @@
 #define MI1 28
 #define MO1 31
 
-#define SPI_BAUD 62500000
+#define SPI1_BAUD 62500000
 
 int dma_tx = -1;
 dma_channel_config dma_conf;
@@ -19,7 +19,7 @@ void SPI1_init() {
 // SCK clock - GPIO30 (SCK1) - SCK Pin 
 // MO out - GPIO31 (TX1) - MO Pin
 
-	spi_init(spi1, SPI_BAUD);
+	spi_init(spi1, SPI1_BAUD);
 	gpio_set_function(SCK1, GPIO_FUNC_SPI);
 	gpio_set_function(MO1, GPIO_FUNC_SPI);
 
