@@ -39,7 +39,7 @@ SGL_display *SGL_create_display(enum SGL_driver driver) {
 			SGL_display *display = malloc(sizeof(SGL_display));
 			SGL_surface *surface = malloc(sizeof(SGL_surface) + 320 * 240 * 2);
 
-			ST7789_init(ROT90, ST7789_DC, ST7789_RST, ST7789_CS);
+			ST7789_init(ST7789_ROT90, ST7789_DC, ST7789_RST, ST7789_CS);
 			sleep_ms(100);
 			ST7789_set_framebuffer(surface->pixels, 320, 240);
 
@@ -72,7 +72,42 @@ void SGL_fill(SGL_surface *surface, uint16_t color) {
 	}
 }
 
+void SGL_set_rotation(SGL_display *display, uint16_t rotation) {
+	switch (display->driver) {
+		case ST7789:
+			uint8_t rot;
 
+			switch (rotation) {
+				case 0:
+					rot = ST7789_ROT0;
+					display->surface->width = 240;
+					display->surface->height = 320;
+					break;
+				case 90:
+					rot = ST7789_ROT90;
+					display->surface->width = 320;
+					display->surface->height = 240;
+					break;
+				case 180:
+					rot = ST7789_ROT180;
+					display->surface->width = 240;
+					display->surface->height = 320;
+					break;
+				case 270:
+					rot = ST7789_ROT270;
+					display->surface->width = 320;
+					display->surface->height = 240;
+					break;
+				default:
+					return;
+			}
+
+			ST7789_set_rotation(rot);
+			break;
+		default:
+			return;
+	}
+}
 
 
 /*

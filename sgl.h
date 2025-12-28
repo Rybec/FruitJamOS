@@ -44,6 +44,7 @@ SGL_surface *SGL_get_display_surface(SGL_display *display);
 
 void SGL_destroy_display(SGL_display *display);
 
+void SGL_set_rotation(SGL_display *display, uint16_t rotation);
 
 void SGL_fill(SGL_surface *surface, uint16_t color);
 
