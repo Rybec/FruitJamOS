@@ -69,7 +69,7 @@ void ST7789_init(uint8_t rotation, uint8_t _dc, uint8_t _rst, uint8_t _cs) {
 	rst = _rst;
 	cs = _cs;
 
-	if ((rotation & 0b00100000) == 0) {
+	if ((rotation & 0b00100000) != 0) {
 		width = 240;
 		height = 320;
 	} else {
@@ -205,7 +205,7 @@ inline uint8_t ST7789_get_depth() {
 void ST7789_set_rotation(uint8_t rotation) {
 	SPI1_DMA_wait();
 
-	if ((rotation & 0b00100000) == 0) {
+	if ((rotation & 0b00100000) != 0) {
 		width = 240;
 		height = 320;
 	} else {
