@@ -27,16 +27,21 @@ uint16_t ST7789_get_width();
 uint16_t ST7789_get_height();
 uint8_t ST7789_get_depth();
 
+// Note that while the size of the framebuffer
+// will not change, higher level tracking should
+// update the dimensions if needed.
+void ST7789_set_rotation(uint8_t rotation);
 
-/*
-Brightness changing functions
+
+void ST7789_set_viewport(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
+void ST7789_reset_viewport();
+
+
+/*  Does not work with Adafruit displays, as the blacklight
+    is controlled with the BL pin and not the controller.
+void ST7789_set_brightness(uint8_t brightness);
 */
 
-/*
-Change rotation
-Might be useful if accelerometer is used.
-Don't forget to swap width/height
-*/
 
 
 

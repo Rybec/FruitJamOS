@@ -21,6 +21,12 @@ uint16_t height;
 uint16_t *framebuffer = NULL;
 uint16_t fb_width = 0;
 uint16_t fb_height = 0;
+
+uint16_t viewport_x = 0;
+uint16_t viewport_y = 0;
+uint16_t viewport_w = 0;
+uint16_t viewport_h = 0;
+
 uint8_t dirty_ramwr = 1;  // Track when DMA needs to resend frame commands
 
 
@@ -121,12 +127,34 @@ void ST7789_init(uint8_t rotation, uint8_t _dc, uint8_t _rst, uint8_t _cs) {
 }
 
 
+void ST7789_set_viewport(uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
+	viewport_x = x;
+	viewport_y = y;
+	viewport_w = w;
+	viewport_h = h;
 
+	dirty_ramwr = 1;
+}
+
+
+void ST7789_reset_viewport() {
+	viewport_x = 0;
+	viewport_y = 0;
+	viewport_w = fb_width;
+	viewport_h = fb_height;
+
+	dirty_ramwr = 1;
+}
+
+
+// Note that this resets viewport to new framebuffer
 void ST7789_set_framebuffer(uint16_t *buffer, uint16_t w, uint16_t h) {
 	SPI1_DMA_wait();
 	framebuffer = buffer;
 	fb_width = w;
 	fb_height = h;
+
+	ST7789_reset_viewport();
 
 	SPI1_DMA_set_buf((uint8_t*)buffer, w * h * 2);
 
@@ -138,10 +166,12 @@ void ST7789_blit() {
 	SPI1_DMA_wait();
 
 	if (dirty_ramwr) {
-		uint16_t r[2] = {0, swap_bytes_16(fb_width - 1)};
+		uint16_t r[2] = {swap_bytes_16(viewport_x),
+		                 swap_bytes_16(viewport_w - 1)};
 		write_register(0x2A, 4, (uint8_t*)r);
 
-		r[1] = swap_bytes_16(fb_height - 1);
+		r[0] = swap_bytes_16(viewport_y);
+		r[1] = swap_bytes_16(viewport_h - 1);
 		write_register(0x2B, 4, (uint8_t*)r);
 
 		dirty_ramwr = 0;
@@ -172,25 +202,41 @@ inline uint8_t ST7789_get_depth() {
 }
 
 
+void ST7789_set_rotation(uint8_t rotation) {
+	SPI1_DMA_wait();
+
+	if ((rotation & 0b00100000) == 0) {
+		width = 240;
+		height = 320;
+	} else {
+		width = 320;
+		height = 240;
+	}
+
+// \x36 - MADCTL (8 bit arg, no delay required)
+	write_register(0x36, 1, &rotation);
+}
+
+
+
+
 
 // Maybe add function for writing to subsection of
 // screen or maybe add full "viewport" support.
 
 
-/*
-Brightness changing functions
+
+
+
+
+/*  Does not work with Adafruit displays, as the blacklight
+    is controlled with the BL pin and not the controller.
+// Change brightness using display controller
+void ST7789_set_brightness(uint8_t brightness) {
+	SPI1_DMA_wait();
+	write_register(0x51, 1, &brightness);
+}
 */
-
-/*
-Change rotation
-Might be useful if accelerometer is used.
-Don't forget to swap width/height
-*/
-
-
-
-
-
 
 
 // !!! Non-DMA functions, preserved for informational purposes only. !!!
