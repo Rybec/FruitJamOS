@@ -161,6 +161,13 @@ void ST7789_set_framebuffer(uint16_t *buffer, uint16_t w, uint16_t h) {
 	dirty_ramwr = 1;
 }
 
+// This does not update width and height or viewport
+void ST7789_set_buff_addr(uint16_t *buffer) {
+	SPI1_DMA_wait();
+
+	SPI1_DMA_set_addr((uint8_t*)buffer);
+}
+
 
 void ST7789_blit() {
 	SPI1_DMA_wait();

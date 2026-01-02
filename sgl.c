@@ -29,25 +29,38 @@ typedef struct {
 typedef struct {
 	uint16_t width,
 	uint16_t height,
-	uint16_t pixels[]
+	uint8_t flags,
+	uint16_t *pixels;
+	uint16_t *sending_buffer;
 } SGL_surface;
 */
 
-SGL_display *SGL_create_display(enum SGL_driver driver) {
+SGL_display *SGL_create_display(enum SGL_driver driver, uint8_t flags) {
 	switch (driver) {
 		case ST7789:
 			SGL_display *display = malloc(sizeof(SGL_display));
-			SGL_surface *surface = malloc(sizeof(SGL_surface) + 320 * 240 * 2);
+			SGL_surface *surface;
+			if (flags & SGL_DOUBLE_BUFFER) {
+				surface = malloc(sizeof(SGL_surface));
+				surface->pixels = malloc(320 * 240 * 4);
+				surface->sending_buffer = surface->pixels + 320 * 240 * 2;
+				memset(surface->pixels, 0x00, 320 * 240 * 4);
+			} else {
+				surface = malloc(sizeof(SGL_surface) + 320 * 240 * 2);
+				surface->pixels = malloc(320 * 240 * 2);
+				surface->sending_buffer = NULL;
+				memset(surface->pixels, 0x00, 320 * 240 * 2);
+			}
 
 			ST7789_init(ST7789_ROT90, ST7789_DC, ST7789_RST, ST7789_CS);
 			sleep_ms(100);
 			ST7789_set_framebuffer(surface->pixels, 320, 240);
 
 			display->driver = driver;
+			display->flags = flags;
 			display->surface = surface;
 			display->surface->width = 320;
 			display->surface->height = 240;
-			memset(display->surface->pixels, 0x00, 320 * 240 * 2);
 
 			ST7789_blit();
 
@@ -62,8 +75,37 @@ SGL_surface *SGL_get_display_surface(SGL_display *display) {
 }
 
 void SGL_destroy_display(SGL_display *display) {
+	if (display->flags & SGL_DOUBLE_BUFFER) {
+		if (display->surface->pixels < display->surface->sending_buffer) {
+			free(display->surface->pixels);
+		} else {
+			free(display->surface->sending_buffer);
+		}
+	} else {
+		free(display->surface->pixels);
+	}
+
 	free(display->surface);
 	free(display);
+}
+
+void SGL_flip(SGL_display *display) {
+	switch (display->driver) {
+		case ST7789:
+			if (display->flags & SGL_DOUBLE_BUFFER) {
+				uint16_t *temp;
+				temp = display->surface->pixels;
+				display->surface->pixels = display->surface->sending_buffer;
+				display->surface->sending_buffer = temp;
+
+				ST7789_set_buff_addr(display->surface->sending_buffer);
+			}
+
+			ST7789_blit();
+		default:
+			return;
+	}
+
 }
 
 void SGL_fill(SGL_surface *surface, uint16_t color) {

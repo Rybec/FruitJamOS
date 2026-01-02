@@ -44,7 +44,7 @@ void main() {
 	SGL_init();
 	sleep_ms(100);
 
-	SGL_display *display = SGL_create_display(ST7789);
+	SGL_display *display = SGL_create_display(ST7789, SGL_DOUBLE_BUFFER);
 	SGL_surface *screen = SGL_get_display_surface(display);
 	sleep_ms(100);
 

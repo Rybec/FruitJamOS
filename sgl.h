@@ -13,8 +13,14 @@ enum SGL_driver {
 typedef struct {
 	uint16_t width;
 	uint16_t height;
-	uint16_t pixels[];
+	uint16_t *pixels;
+	uint16_t *sending_buffer;
 } SGL_surface;
+
+// SGL_surface flags
+#define SGL_DOUBLE_BUFFER 0b00000001
+
+
 
 // For multiscreen support, this will need
 // a special data field for tracking which
@@ -24,6 +30,7 @@ typedef struct {
 
 typedef struct {
 	enum SGL_driver driver;
+	uint8_t flags;  // bit 0 - double buffer
 	SGL_surface *surface;
 } SGL_display;
 
@@ -38,7 +45,7 @@ typedef struct {
 
 void SGL_init();
 
-SGL_display *SGL_create_display(enum SGL_driver driver);
+SGL_display *SGL_create_display(enum SGL_driver driver, uint8_t flags);
 
 SGL_surface *SGL_get_display_surface(SGL_display *display);
 

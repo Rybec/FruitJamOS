@@ -20,6 +20,10 @@
 
 void ST7789_init(uint8_t rotation, uint8_t _dc, uint8_t _rst, uint8_t _cs);
 void ST7789_set_framebuffer(uint16_t *buffer, uint16_t w, uint16_t h);
+
+// This does not update width and height or viewport
+void ST7789_set_buff_addr(uint16_t *buffer);
+
 void ST7789_blit();
 
 
