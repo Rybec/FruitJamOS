@@ -48,13 +48,13 @@ SGL_display *SGL_create_display(enum SGL_driver driver, uint8_t flags) {
 			} else {
 				surface = malloc(sizeof(SGL_surface) + 320 * 240 * 2);
 				surface->pixels = malloc(320 * 240 * 2);
-				surface->sending_buffer = NULL;
+				surface->sending_buffer = surface->pixels;
 				memset(surface->pixels, 0x00, 320 * 240 * 2);
 			}
 
 			ST7789_init(ST7789_ROT90, ST7789_DC, ST7789_RST, ST7789_CS);
 			sleep_ms(100);
-			ST7789_set_framebuffer(surface->pixels, 320, 240);
+			ST7789_reset_viewport();
 
 			display->driver = driver;
 			display->flags = flags;
@@ -62,7 +62,7 @@ SGL_display *SGL_create_display(enum SGL_driver driver, uint8_t flags) {
 			display->surface->width = 320;
 			display->surface->height = 240;
 
-			ST7789_blit();
+			ST7789_blit(surface->pixels);
 
 			return display;
 		default:
@@ -97,11 +97,9 @@ void SGL_flip(SGL_display *display) {
 				temp = display->surface->pixels;
 				display->surface->pixels = display->surface->sending_buffer;
 				display->surface->sending_buffer = temp;
-
-				ST7789_set_buff_addr(display->surface->sending_buffer);
 			}
 
-			ST7789_blit();
+			ST7789_blit(display->surface->sending_buffer);
 		default:
 			return;
 	}

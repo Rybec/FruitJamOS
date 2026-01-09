@@ -16,7 +16,7 @@ uint8_t *dma_buffer;
 
 void SPI1_init() {
 // Automatic with SPI1
-// SCK clock - GPIO30 (SCK1) - SCK Pin 
+// SCK clock - GPIO30 (SCK1) - SCK Pin
 // MO out - GPIO31 (TX1) - MO Pin
 
 	spi_init(spi1, SPI1_BAUD);
@@ -30,6 +30,10 @@ void SPI1_init() {
 		channel_config_set_dreq(&dma_conf, spi_get_dreq(spi1, true));
 		channel_config_set_read_increment(&dma_conf, true);
 		channel_config_set_write_increment(&dma_conf, false);
+
+		dma_channel_set_config(dma_tx, &dma_conf, false);
+		dma_channel_set_write_addr(dma_tx, &spi_get_hw(spi1)->dr, false);
+
 	}
 
 	return;
@@ -40,26 +44,17 @@ void SPI1_DMA_wait() {
 		dma_channel_wait_for_finish_blocking(dma_tx);
 }
 
-void SPI1_DMA_set_buf(uint8_t *txbuf, size_t len) {
-	dma_buffer = txbuf;
-	dma_channel_configure(dma_tx, &dma_conf,
-	                      &spi_get_hw(spi1)->dr,
-	                      txbuf,
-	                      len,
-	                      false);
-}
 
-// Length must be exactly the same as the buffer
-// set with SPI1_DMA_set_buf().
-void SPI1_DMA_set_addr(uint8_t *txbuf) {
-	dma_tx = txbuf;
-}
-
-
-void SPI1_DMA_start_tx() {
+void SPI1_DMA_set_buf_len(uint32_t len) {
 	SPI1_DMA_wait();
 
-	dma_channel_set_read_addr(dma_tx, dma_buffer, true);
+	dma_channel_set_transfer_count(dma_tx, len, false);
+}
+
+void SPI1_DMA_send_buf(uint8_t *txbuf) {
+	SPI1_DMA_wait();
+
+	dma_channel_set_read_addr(dma_tx, txbuf, true);
 }
 
 void SPI1_write(uint8_t* buffer, size_t len) {

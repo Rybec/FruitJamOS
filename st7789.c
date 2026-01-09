@@ -18,16 +18,11 @@ uint8_t depth;
 uint16_t width;
 uint16_t height;
 
-uint16_t *framebuffer = NULL;
-uint16_t fb_width = 0;
-uint16_t fb_height = 0;
-
 uint16_t viewport_x = 0;
 uint16_t viewport_y = 0;
 uint16_t viewport_w = 0;
 uint16_t viewport_h = 0;
 
-uint8_t dirty_ramwr = 1;  // Track when DMA needs to resend frame commands
 
 
 // Must handle manually
@@ -36,6 +31,9 @@ uint8_t dirty_ramwr = 1;  // Track when DMA needs to resend frame commands
 // D10 - GPIO10 (SCK1) - CS Pin
 
 
+/*********************************
+	Internal utility functions
+*********************************/
 void write_command(uint8_t cmd) {
 	gpio_put(cs, 0);
 	gpio_put(dc, 0);
@@ -61,8 +59,21 @@ void write_register(uint8_t reg, uint32_t argc, uint8_t argv[]) {
 	gpio_put(cs, 1);
 }
 
+void set_frame() {
+	uint16_t r[2] = {swap_bytes_16(viewport_x),
+	                 swap_bytes_16(viewport_w - 1)};
+	write_register(0x2A, 4, (uint8_t*)r);
+
+	r[0] = swap_bytes_16(viewport_y);
+	r[1] = swap_bytes_16(viewport_h - 1);
+	write_register(0x2B, 4, (uint8_t*)r);
+}
 
 
+
+/********************************
+	External driver functions
+********************************/
 
 void ST7789_init(uint8_t rotation, uint8_t _dc, uint8_t _rst, uint8_t _cs) {
 	dc = _dc;
@@ -70,11 +81,11 @@ void ST7789_init(uint8_t rotation, uint8_t _dc, uint8_t _rst, uint8_t _cs) {
 	cs = _cs;
 
 	if ((rotation & 0b00100000) != 0) {
-		width = 240;
-		height = 320;
-	} else {
 		width = 320;
 		height = 240;
+	} else {
+		width = 240;
+		height = 320;
 	}
 
 	gpio_init(dc);
@@ -127,86 +138,46 @@ void ST7789_init(uint8_t rotation, uint8_t _dc, uint8_t _rst, uint8_t _cs) {
 }
 
 
+
+
+void ST7789_reset_viewport() {
+	viewport_x = 0;
+	viewport_y = 0;
+	viewport_w = width;
+	viewport_h = height;
+
+	SPI1_DMA_wait();
+	SPI1_DMA_set_buf_len(width * height * 2);
+
+	set_frame();
+}
+
+
 void ST7789_set_viewport(uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
 	viewport_x = x;
 	viewport_y = y;
 	viewport_w = w;
 	viewport_h = h;
 
-	dirty_ramwr = 1;
-}
-
-
-void ST7789_reset_viewport() {
-	viewport_x = 0;
-	viewport_y = 0;
-	viewport_w = fb_width;
-	viewport_h = fb_height;
-
-	dirty_ramwr = 1;
-}
-
-
-// Note that this resets viewport to new framebuffer
-void ST7789_set_framebuffer(uint16_t *buffer, uint16_t w, uint16_t h) {
 	SPI1_DMA_wait();
-	framebuffer = buffer;
-	fb_width = w;
-	fb_height = h;
+	SPI1_DMA_set_buf_len(w * h * 2);
 
-	ST7789_reset_viewport();
-
-	SPI1_DMA_set_buf((uint8_t*)buffer, w * h * 2);
-
-	dirty_ramwr = 1;
-}
-
-// This does not update width and height or viewport
-void ST7789_set_buff_addr(uint16_t *buffer) {
-	SPI1_DMA_wait();
-
-	SPI1_DMA_set_addr((uint8_t*)buffer);
+	set_frame();
 }
 
 
-void ST7789_blit() {
+
+void ST7789_blit(uint16_t *buffer) {
 	SPI1_DMA_wait();
-
-	if (dirty_ramwr) {
-		uint16_t r[2] = {swap_bytes_16(viewport_x),
-		                 swap_bytes_16(viewport_w - 1)};
-		write_register(0x2A, 4, (uint8_t*)r);
-
-		r[0] = swap_bytes_16(viewport_y);
-		r[1] = swap_bytes_16(viewport_h - 1);
-		write_register(0x2B, 4, (uint8_t*)r);
-
-		dirty_ramwr = 0;
-	}
 
 	// RAMWR
 	write_command(0x2C);
 
 	gpio_put(cs, 0);
 	gpio_put(dc, 1);
-	SPI1_DMA_start_tx();
+	SPI1_DMA_send_buf((uint8_t*)buffer);
 }
 
-
-inline uint16_t ST7789_get_width() {
-	return width;
-}
-
-
-inline uint16_t ST7789_get_height() {
-	return height;
-}
-
-
-// Returns color depth in bits
-inline uint8_t ST7789_get_depth() {
-	return depth;
-}
 
 
 void ST7789_set_rotation(uint8_t rotation) {
@@ -227,9 +198,23 @@ void ST7789_set_rotation(uint8_t rotation) {
 
 
 
+inline uint16_t ST7789_get_width() {
+	return width;
+}
 
-// Maybe add function for writing to subsection of
-// screen or maybe add full "viewport" support.
+
+inline uint16_t ST7789_get_height() {
+	return height;
+}
+
+
+// Returns color depth in bits
+inline uint8_t ST7789_get_depth() {
+	return depth;
+}
+
+
+
 
 
 
@@ -245,53 +230,5 @@ void ST7789_set_brightness(uint8_t brightness) {
 }
 */
 
-
-// !!! Non-DMA functions, preserved for informational purposes only. !!!
-
-/*
-	Writes buffer contents to full screen
-
-	Buffer size must be no smaller than:
-		153,600 bytes
-
-void ST7789_write_frame(uint8_t *buffer) {
-	uint16_t r[2] = {0, swap_bytes_16(width - 1)};
-	write_register(0x2A, 4, (uint8_t*)r);
-
-	r[1] = swap_bytes_16(height - 1);
-	write_register(0x2B, 4, (uint8_t*)r);
-
-	write_register(0x2C, width * height * 2, buffer);
-}
-*/
-
-/*
-	Writes buffer contents to specified rectangular area
-
-	Buffer size must be no smaller than:
-		(w - x) * (h - y) * 2 bytes
-
-void ST7789_write_rect(uint8_t *buffer, uint16_t x, uint16_t y,
-                                        uint16_t w, uint16_t h) {
-	uint16_t r[2] = {x, swap_bytes_16(w + x - 1)};
-	write_register(0x2A, 4, (uint8_t*)r);
-
-	r[0] = y;
-	r[1] = swap_bytes_16(h + y - 1);
-	write_register(0x2B, 4, (uint8_t*)r);
-
-	write_register(0x2C, w * h * 2, buffer);
-}
-*/
-
-/*
-	Slightly faster frame write.  This will write to the same
-	region as the previous write call.  Ensure that the buffer
-	is large enough for that region.
-
-void ST7789_cont_write(uint8_t *buffer, size_t len) {
-	write_data(buffer, len);
-}
-*/
 
 

@@ -139,7 +139,7 @@ void main() {
 		SGL_IMG_blit(&blue_roof_house, &srect,
 		             screen, &drect);
 
-		ST7789_blit();
+		SGL_flip(display);
 
 
 // !!! For measuring frame rate, can be removed !!!

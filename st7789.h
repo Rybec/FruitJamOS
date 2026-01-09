@@ -19,26 +19,26 @@
 
 
 void ST7789_init(uint8_t rotation, uint8_t _dc, uint8_t _rst, uint8_t _cs);
-void ST7789_set_framebuffer(uint16_t *buffer, uint16_t w, uint16_t h);
 
-// This does not update width and height or viewport
-void ST7789_set_buff_addr(uint16_t *buffer);
 
-void ST7789_blit();
+// Set viewport to the full dimensions of the screen.
+void ST7789_reset_viewport();
+void ST7789_set_viewport(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
+
+
+void ST7789_blit(uint16_t *buffer);
+
+
+// Note that while the size of the framebuffer
+// will not change, the viewport and higher level
+// tracking should update the dimensions.
+void ST7789_set_rotation(uint8_t rotation);
 
 
 uint16_t ST7789_get_width();
 uint16_t ST7789_get_height();
 uint8_t ST7789_get_depth();
 
-// Note that while the size of the framebuffer
-// will not change, higher level tracking should
-// update the dimensions if needed.
-void ST7789_set_rotation(uint8_t rotation);
-
-
-void ST7789_set_viewport(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
-void ST7789_reset_viewport();
 
 
 /*  Does not work with Adafruit displays, as the blacklight
@@ -46,38 +46,6 @@ void ST7789_reset_viewport();
 void ST7789_set_brightness(uint8_t brightness);
 */
 
-
-
-
-
-
-
-// Obsolete functions
-
-/*
-	Writes buffer contents to full screen
-
-	Buffer size must be no smaller than:
-		153,600 bytes
-
-void ST7789_write_frame(uint8_t *buffer);
-*/
-/*
-	Writes buffer contents to specified rectangular area
-
-	Buffer size must be no smaller than:
-		(w - x) * (h - y) * 2 bytes
-
-void ST7789_write_rect(uint8_t *buffer, uint16_t x, uint16_t y,
-                                        uint16_t w, uint16_t h);
-*/
-/*
-	Slightly faster frame write.  This will write to the same
-	region as the previous write call.  Ensure that the buffer
-	is large enough for that region.
-
-void ST7789_cont_write(uint8_t *buffer, size_t len);
-*/
 
 
 #endif
